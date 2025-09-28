@@ -57,6 +57,26 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "pre-installation": {
+          DEFAULT: "hsl(var(--pre-installation))",
+          light: "hsl(var(--pre-installation-light))",
+        },
+        installation: {
+          DEFAULT: "hsl(var(--installation))",
+          light: "hsl(var(--installation-light))",
+        },
+        "post-installation": {
+          DEFAULT: "hsl(var(--post-installation))",
+          light: "hsl(var(--post-installation-light))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        progress: {
+          bg: "hsl(var(--progress-bg))",
+          fill: "hsl(var(--progress-fill))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
