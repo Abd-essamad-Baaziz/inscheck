@@ -14,7 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      checklist_items: {
+        Row: {
+          checked: boolean
+          comment: string | null
+          created_at: string
+          id: string
+          item: string
+          phase: string
+          updated_at: string
+        }
+        Insert: {
+          checked?: boolean
+          comment?: string | null
+          created_at?: string
+          id?: string
+          item: string
+          phase: string
+          updated_at?: string
+        }
+        Update: {
+          checked?: boolean
+          comment?: string | null
+          created_at?: string
+          id?: string
+          item?: string
+          phase?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
