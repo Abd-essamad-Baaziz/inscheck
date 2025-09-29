@@ -4,6 +4,9 @@ export interface ChecklistItemType {
   item: string;
   checked: boolean;
   comment: string;
+  created_at?: string;
+  updated_at?: string;
+  user_id?: string;
 }
 
 export interface ChecklistData {
