@@ -13,16 +13,38 @@ serve(async (req) => {
   }
 
   try {
+    // Get user from JWT token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'No authorization header' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: { headers: { Authorization: authHeader } }
+      }
     );
 
+    // Verify user is authenticated
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     if (req.method === 'GET') {
-      // Retrieve all checklists
+      // Retrieve user's checklists
       const { data, error } = await supabase
         .from('checklist_items')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -36,26 +58,27 @@ serve(async (req) => {
     }
 
     if (req.method === 'POST') {
-      // Save checklist items
+      // Save user's checklist items
       const checklistItems = await req.json();
 
-      // First, clear existing items (for new checklist scenario)
+      // First, clear existing items for this user
       const { error: deleteError } = await supabase
         .from('checklist_items')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all items
+        .eq('user_id', user.id);
 
       if (deleteError) {
         console.error('Error clearing existing items:', deleteError);
         // Continue anyway - this might be the first save
       }
 
-      // Insert new items
+      // Insert new items for this user
       const itemsToInsert = checklistItems.map((item: any) => ({
         phase: item.phase,
         item: item.item,
         checked: item.checked,
-        comment: item.comment || ''
+        comment: item.comment || '',
+        user_id: user.id
       }));
 
       const { data, error } = await supabase

@@ -1,4 +1,4 @@
 project_id = "vtwjgydkpuqghodrxoaq"
 
 [functions.checklists]
-verify_jwt = false
+verify_jwt = true

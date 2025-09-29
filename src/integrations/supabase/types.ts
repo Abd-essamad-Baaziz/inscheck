@@ -23,6 +23,7 @@ export type Database = {
           item: string
           phase: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           checked?: boolean
@@ -32,6 +33,7 @@ export type Database = {
           item: string
           phase: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           checked?: boolean
@@ -41,6 +43,7 @@ export type Database = {
           item?: string
           phase?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
