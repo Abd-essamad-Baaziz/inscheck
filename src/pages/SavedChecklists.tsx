@@ -3,7 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Clock, CheckCircle2, Circle, ArrowLeft, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar, Clock, CheckCircle2, Circle, ArrowLeft, Trash2, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +23,7 @@ interface SavedChecklist {
 const SavedChecklists = () => {
   const [savedChecklists, setSavedChecklists] = useState<SavedChecklist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedChecklist, setSelectedChecklist] = useState<SavedChecklist | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -278,9 +282,122 @@ const SavedChecklists = () => {
 
                     {/* Action Buttons */}
                     <div className="pt-2">
-                      <Button variant="outline" className="w-full" size="sm">
-                        View Details
-                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            className="w-full" 
+                            size="sm"
+                            onClick={() => setSelectedChecklist(checklist)}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                              <Calendar className="h-5 w-5" />
+                              Checklist Details - {new Date(checklist.date).toLocaleDateString('en-US', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </DialogTitle>
+                            <DialogDescription>
+                              Complete overview of your installation checklist with {checklist.totalCount} items
+                              • {checklist.completionPercentage}% completed
+                            </DialogDescription>
+                          </DialogHeader>
+                          
+                          <div className="space-y-6">
+                            {/* Progress Overview */}
+                            <div className="grid grid-cols-3 gap-4">
+                              {['Pre-Installation', 'Installation', 'Post-Installation'].map((phase) => {
+                                const phaseItems = checklist.items.filter(item => item.phase === phase);
+                                const phaseCompleted = phaseItems.filter(item => item.checked).length;
+                                const phasePercentage = phaseItems.length > 0 ? Math.round((phaseCompleted / phaseItems.length) * 100) : 0;
+
+                                return (
+                                  <Card key={phase}>
+                                    <CardContent className="p-4">
+                                      <div className="space-y-2">
+                                        <Badge className={`text-xs ${getPhaseColor(phase)}`}>
+                                          {phase}
+                                        </Badge>
+                                        <div className="text-2xl font-bold">
+                                          {phaseCompleted}/{phaseItems.length}
+                                        </div>
+                                        <div className="w-full bg-secondary rounded-full h-1.5">
+                                          <div
+                                            className="bg-primary h-1.5 rounded-full transition-all"
+                                            style={{ width: `${phasePercentage}%` }}
+                                          />
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                          {phasePercentage}% complete
+                                        </div>
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                );
+                              })}
+                            </div>
+
+                            <Separator />
+
+                            {/* Detailed Checklist Items by Phase */}
+                            <div className="space-y-6">
+                              {['Pre-Installation', 'Installation', 'Post-Installation'].map((phase) => {
+                                const phaseItems = checklist.items.filter(item => item.phase === phase);
+                                if (phaseItems.length === 0) return null;
+
+                                return (
+                                  <div key={phase} className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                      <Badge className={`${getPhaseColor(phase)}`}>
+                                        {phase}
+                                      </Badge>
+                                      <span className="text-sm text-muted-foreground">
+                                        {phaseItems.filter(item => item.checked).length}/{phaseItems.length} completed
+                                      </span>
+                                    </div>
+                                    
+                                    <div className="grid gap-3">
+                                      {phaseItems.map((item) => (
+                                        <div key={item.id} className="p-4 bg-card rounded-lg border border-border">
+                                          <div className="flex items-start gap-3">
+                                            <Checkbox
+                                              checked={item.checked}
+                                              disabled
+                                              className="mt-1"
+                                            />
+                                            <div className="flex-1 space-y-2">
+                                              <div className={`text-sm font-medium leading-relaxed ${
+                                                item.checked ? 'line-through text-muted-foreground' : 'text-foreground'
+                                              }`}>
+                                                {item.item}
+                                              </div>
+                                              {item.comment && (
+                                                <Textarea
+                                                  value={item.comment}
+                                                  disabled
+                                                  className="min-h-[60px] text-sm resize-none bg-muted"
+                                                />
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
                 </CardContent>
