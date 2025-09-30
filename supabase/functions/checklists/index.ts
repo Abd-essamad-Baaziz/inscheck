@@ -61,18 +61,7 @@ serve(async (req) => {
       // Save user's checklist items
       const checklistItems = await req.json();
 
-      // First, clear existing items for this user
-      const { error: deleteError } = await supabase
-        .from('checklist_items')
-        .delete()
-        .eq('user_id', user.id);
-
-      if (deleteError) {
-        console.error('Error clearing existing items:', deleteError);
-        // Continue anyway - this might be the first save
-      }
-
-      // Insert new items for this user
+      // Insert new items for this user (each save creates a new checklist)
       const itemsToInsert = checklistItems.map((item: any) => ({
         phase: item.phase,
         item: item.item,
