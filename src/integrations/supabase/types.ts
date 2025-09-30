@@ -17,6 +17,7 @@ export type Database = {
       checklist_items: {
         Row: {
           checked: boolean
+          checklist_id: string | null
           comment: string | null
           created_at: string
           id: string
@@ -27,6 +28,7 @@ export type Database = {
         }
         Insert: {
           checked?: boolean
+          checklist_id?: string | null
           comment?: string | null
           created_at?: string
           id?: string
@@ -37,6 +39,7 @@ export type Database = {
         }
         Update: {
           checked?: boolean
+          checklist_id?: string | null
           comment?: string | null
           created_at?: string
           id?: string

@@ -64,11 +64,11 @@ const SavedChecklists = () => {
 
   const groupChecklistsByDate = (items: any[]): SavedChecklist[] => {
     const grouped = items.reduce((acc: { [key: string]: ChecklistItemType[] }, item) => {
-      const date = new Date(item.created_at).toDateString();
-      if (!acc[date]) {
-        acc[date] = [];
+      const checklistId = item.checklist_id || new Date(item.created_at).toISOString();
+      if (!acc[checklistId]) {
+        acc[checklistId] = [];
       }
-      acc[date].push({
+      acc[checklistId].push({
         id: item.id,
         phase: item.phase,
         item: item.item,
@@ -76,15 +76,17 @@ const SavedChecklists = () => {
         comment: item.comment,
         created_at: item.created_at,
         updated_at: item.updated_at,
-        user_id: item.user_id
+        user_id: item.user_id,
+        checklist_id: item.checklist_id
       });
       return acc;
     }, {});
 
     return Object.entries(grouped)
-      .map(([date, items]: [string, ChecklistItemType[]]) => {
+      .map(([checklistId, items]: [string, ChecklistItemType[]]) => {
         const completedCount = items.filter(item => item.checked).length;
         const totalCount = items.length;
+        const date = new Date(items[0].created_at!).toDateString();
         return {
           date,
           items,
@@ -101,11 +103,13 @@ const SavedChecklists = () => {
       const checklistToDelete = savedChecklists.find(cl => cl.date === date);
       if (!checklistToDelete) return;
 
-      // Delete all items from this checklist date
+      const checklistId = checklistToDelete.items[0]?.checklist_id;
+
+      // Delete all items from this checklist using checklist_id
       const { error } = await supabase
         .from('checklist_items')
         .delete()
-        .in('id', checklistToDelete.items.map(item => item.id));
+        .eq('checklist_id', checklistId);
 
       if (error) {
         console.error('Error deleting checklist:', error);

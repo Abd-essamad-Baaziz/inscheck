@@ -7,6 +7,7 @@ export interface ChecklistItemType {
   created_at?: string;
   updated_at?: string;
   user_id?: string;
+  checklist_id?: string;
 }
 
 export interface ChecklistData {

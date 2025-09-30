@@ -61,13 +61,17 @@ serve(async (req) => {
       // Save user's checklist items
       const checklistItems = await req.json();
 
+      // Generate a unique checklist_id for this save
+      const checklistId = crypto.randomUUID();
+
       // Insert new items for this user (each save creates a new checklist)
       const itemsToInsert = checklistItems.map((item: any) => ({
         phase: item.phase,
         item: item.item,
         checked: item.checked,
         comment: item.comment || '',
-        user_id: user.id
+        user_id: user.id,
+        checklist_id: checklistId
       }));
 
       const { data, error } = await supabase
