@@ -40,10 +40,23 @@ serve(async (req) => {
     }
 
     if (req.method === 'GET') {
-      // Retrieve user's checklists
+      // Retrieve user's checklists with items
       const { data, error } = await supabase
-        .from('checklist_items')
-        .select('*')
+        .from('checklists')
+        .select(`
+          id,
+          title,
+          created_at,
+          updated_at,
+          checklist_items (
+            id,
+            phase,
+            item,
+            checked,
+            comment,
+            created_at
+          )
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -59,35 +72,71 @@ serve(async (req) => {
 
     if (req.method === 'POST') {
       // Save user's checklist items
-      const checklistItems = await req.json();
+      const { title, items } = await req.json();
 
-      // Generate a unique checklist_id for this save
-      const checklistId = crypto.randomUUID();
+      // First create the checklist record
+      const { data: checklistData, error: checklistError } = await supabase
+        .from('checklists')
+        .insert({
+          user_id: user.id,
+          title: title || `Checklist - ${new Date().toLocaleDateString()}`
+        })
+        .select()
+        .single();
 
-      // Insert new items for this user (each save creates a new checklist)
-      const itemsToInsert = checklistItems.map((item: any) => ({
+      if (checklistError) {
+        console.error('Error creating checklist:', checklistError);
+        throw checklistError;
+      }
+
+      // Then insert all items linked to this checklist
+      const itemsToInsert = items.map((item: any) => ({
         phase: item.phase,
         item: item.item,
         checked: item.checked,
         comment: item.comment || '',
         user_id: user.id,
-        checklist_id: checklistId
+        checklist_id: checklistData.id
       }));
 
-      const { data, error } = await supabase
+      const { data: itemsData, error: itemsError } = await supabase
         .from('checklist_items')
         .insert(itemsToInsert)
         .select();
 
+      if (itemsError) {
+        console.error('Error saving checklist items:', itemsError);
+        throw itemsError;
+      }
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: `Saved ${itemsData.length} checklist items`,
+        checklist: checklistData,
+        items: itemsData
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (req.method === 'DELETE') {
+      // Delete a checklist (cascade will delete items)
+      const { checklistId } = await req.json();
+
+      const { error } = await supabase
+        .from('checklists')
+        .delete()
+        .eq('id', checklistId)
+        .eq('user_id', user.id);
+
       if (error) {
-        console.error('Error saving checklist:', error);
+        console.error('Error deleting checklist:', error);
         throw error;
       }
 
       return new Response(JSON.stringify({ 
         success: true, 
-        message: `Saved ${data.length} checklist items`,
-        data 
+        message: 'Checklist deleted successfully'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

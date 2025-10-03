@@ -8,43 +8,23 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  const [checklistItems, setChecklistItems] = useState<ChecklistItemType[]>(defaultChecklistItems);
-  const [isLoading, setIsLoading] = useState(false);
+  const [checklistItems, setChecklistItems] = useState<ChecklistItemType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
-  // Load checklist items from database on component mount
   useEffect(() => {
     loadChecklistItems();
   }, []);
 
-  const loadChecklistItems = async () => {
-    try {
-      setIsLoading(true);
-      const { data, error } = await supabase.functions.invoke('checklists', {
-        method: 'GET'
-      });
-
-      if (error) throw error;
-
-      // If we have data from the database, use it; otherwise use default
-      if (data && data.length > 0) {
-        setChecklistItems(data);
-        toast({
-          title: "Checklist loaded",
-          description: `Loaded ${data.length} items from database.`,
-        });
-      }
-    } catch (error) {
-      console.error('Error loading checklist:', error);
-      toast({
-        title: "Using default checklist",
-        description: "Could not load saved data, starting with default checklist.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const loadChecklistItems = () => {
+    // Always load fresh default items for new checklist
+    setChecklistItems(defaultChecklistItems.map(item => ({
+      ...item,
+      checked: false,
+      comment: ""
+    })));
+    setIsLoading(false);
   };
 
   const updateItem = (id: string, updates: Partial<ChecklistItemType>) => {
@@ -71,8 +51,10 @@ const Index = () => {
     try {
       setIsSaving(true);
       const { data, error } = await supabase.functions.invoke('checklists', {
-        method: 'POST',
-        body: checklistItems
+        body: {
+          title: `Checklist - ${new Date().toLocaleDateString()}`,
+          items: checklistItems
+        }
       });
 
       if (error) throw error;
@@ -82,6 +64,9 @@ const Index = () => {
         title: "Checklist saved successfully!",
         description: `${completedItems.length} completed items saved to database.`,
       });
+      
+      // Reset to fresh checklist after saving
+      handleNewChecklist();
     } catch (error) {
       console.error('Error saving checklist:', error);
       toast({
