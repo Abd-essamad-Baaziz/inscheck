@@ -34,9 +34,7 @@ const SavedChecklists = () => {
   const loadSavedChecklists = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase.functions.invoke('checklists', {
-        method: 'GET'
-      });
+      const { data, error } = await supabase.functions.invoke('checklists');
 
       if (error) throw error;
 
@@ -70,11 +68,16 @@ const SavedChecklists = () => {
     }
   };
 
-  const deleteChecklist = async (checklistId: string) => {
+  const deleteChecklist = async (checklistId: string, event?: React.MouseEvent) => {
+    // Prevent event bubbling if triggered from a button inside a card
+    event?.stopPropagation();
+    
     try {
       const { error } = await supabase.functions.invoke('checklists', {
-        method: 'DELETE',
-        body: { checklistId }
+        body: { 
+          method: 'DELETE',
+          checklistId 
+        }
       });
 
       if (error) throw error;
@@ -158,7 +161,7 @@ const SavedChecklists = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => deleteChecklist(checklist.id)}
+                      onClick={(e) => deleteChecklist(checklist.id, e)}
                       className="text-destructive hover:text-destructive/90"
                     >
                       <Trash2 className="h-4 w-4" />

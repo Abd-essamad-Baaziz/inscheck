@@ -121,7 +121,17 @@ serve(async (req) => {
 
     if (req.method === 'DELETE') {
       // Delete a checklist (cascade will delete items)
-      const { checklistId } = await req.json();
+      const body = await req.json();
+      const checklistId = body.checklistId;
+
+      if (!checklistId) {
+        return new Response(JSON.stringify({ error: 'checklistId is required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      console.log('Deleting checklist:', checklistId);
 
       const { error } = await supabase
         .from('checklists')
