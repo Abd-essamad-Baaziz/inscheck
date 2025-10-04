@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChecklistItemType } from "@/types/checklist";
 import { Trash2 } from "lucide-react";
@@ -14,9 +15,15 @@ interface ChecklistItemProps {
 
 export const ChecklistItem = ({ item, onUpdate, onDelete, phaseColor }: ChecklistItemProps) => {
   const [comment, setComment] = useState(item.comment);
+  const [itemText, setItemText] = useState(item.item);
 
   const handleCheckedChange = (checked: boolean) => {
     onUpdate(item.id, { checked });
+  };
+
+  const handleItemTextChange = (value: string) => {
+    setItemText(value);
+    onUpdate(item.id, { item: value });
   };
 
   const handleCommentChange = (value: string) => {
@@ -35,14 +42,14 @@ export const ChecklistItem = ({ item, onUpdate, onDelete, phaseColor }: Checklis
         />
         <div className="flex-1 space-y-3">
           <div className="flex items-start justify-between gap-2">
-            <label 
-              htmlFor={item.id}
-              className={`text-sm font-medium leading-relaxed cursor-pointer flex-1 ${
+            <Input
+              value={itemText}
+              onChange={(e) => handleItemTextChange(e.target.value)}
+              className={`text-sm font-medium flex-1 ${
                 item.checked ? 'line-through text-muted-foreground' : 'text-foreground'
               }`}
-            >
-              {item.item}
-            </label>
+              placeholder="Enter item description..."
+            />
             <Button
               variant="ghost"
               size="icon"
