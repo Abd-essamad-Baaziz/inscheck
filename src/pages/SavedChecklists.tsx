@@ -34,7 +34,9 @@ const SavedChecklists = () => {
   const loadSavedChecklists = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase.functions.invoke('checklists');
+      const { data, error } = await supabase.functions.invoke('checklists', {
+        body: { method: 'GET' }
+      });
 
       if (error) throw error;
 
