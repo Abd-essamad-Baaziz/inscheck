@@ -35,6 +35,29 @@ const Index = () => {
     );
   };
 
+  const addItem = (phase: string) => {
+    const newItem: ChecklistItemType = {
+      id: `item-${Date.now()}`,
+      phase,
+      item: "New checklist item",
+      checked: false,
+      comment: ""
+    };
+    setChecklistItems(prev => [...prev, newItem]);
+    toast({
+      title: "Item added",
+      description: `New item added to ${phase}`,
+    });
+  };
+
+  const deleteItem = (id: string) => {
+    setChecklistItems(prev => prev.filter(item => item.id !== id));
+    toast({
+      title: "Item deleted",
+      description: "Checklist item removed",
+    });
+  };
+
   const handleNewChecklist = () => {
     setChecklistItems(defaultChecklistItems.map(item => ({
       ...item,
@@ -106,6 +129,8 @@ const Index = () => {
               phase={phase}
               items={groupedItems[phase] || []}
               onUpdateItem={updateItem}
+              onAddItem={addItem}
+              onDeleteItem={deleteItem}
               phaseColor={phaseColors[index]}
               accentColor={phaseColors[index]}
             />

@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { ChecklistItemType } from "@/types/checklist";
+import { Trash2 } from "lucide-react";
 
 interface ChecklistItemProps {
   item: ChecklistItemType;
   onUpdate: (id: string, updates: Partial<ChecklistItemType>) => void;
+  onDelete: (id: string) => void;
   phaseColor: string;
 }
 
-export const ChecklistItem = ({ item, onUpdate, phaseColor }: ChecklistItemProps) => {
+export const ChecklistItem = ({ item, onUpdate, onDelete, phaseColor }: ChecklistItemProps) => {
   const [comment, setComment] = useState(item.comment);
 
   const handleCheckedChange = (checked: boolean) => {
@@ -31,14 +34,24 @@ export const ChecklistItem = ({ item, onUpdate, phaseColor }: ChecklistItemProps
           className="mt-1"
         />
         <div className="flex-1 space-y-3">
-          <label 
-            htmlFor={item.id}
-            className={`text-sm font-medium leading-relaxed cursor-pointer ${
-              item.checked ? 'line-through text-muted-foreground' : 'text-foreground'
-            }`}
-          >
-            {item.item}
-          </label>
+          <div className="flex items-start justify-between gap-2">
+            <label 
+              htmlFor={item.id}
+              className={`text-sm font-medium leading-relaxed cursor-pointer flex-1 ${
+                item.checked ? 'line-through text-muted-foreground' : 'text-foreground'
+              }`}
+            >
+              {item.item}
+            </label>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onDelete(item.id)}
+              className="h-8 w-8 text-destructive hover:text-destructive/90"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
           <Textarea
             placeholder="Add notes or comments..."
             value={comment}
