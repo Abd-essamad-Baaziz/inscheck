@@ -64,9 +64,6 @@ const Index = () => {
         title: "Checklist saved successfully!",
         description: `${completedItems.length} completed items saved to database.`,
       });
-      
-      // Reset to fresh checklist after saving
-      handleNewChecklist();
     } catch (error) {
       console.error('Error saving checklist:', error);
       toast({

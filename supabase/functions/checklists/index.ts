@@ -39,7 +39,24 @@ serve(async (req) => {
       });
     }
 
-    if (req.method === 'GET') {
+    // Parse body to check for method (when using supabase.functions.invoke)
+    let requestBody: any = {};
+    let method = req.method;
+    
+    if (req.method === 'POST') {
+      try {
+        requestBody = await req.json();
+        // If body contains a method field, use that instead
+        if (requestBody.method) {
+          method = requestBody.method;
+        }
+      } catch (e) {
+        // If JSON parsing fails, continue with default POST behavior
+        console.error('Failed to parse request body:', e);
+      }
+    }
+
+    if (method === 'GET' || (!requestBody.method && req.method === 'GET')) {
       // Retrieve user's checklists with items
       const { data, error } = await supabase
         .from('checklists')
@@ -70,9 +87,9 @@ serve(async (req) => {
       });
     }
 
-    if (req.method === 'POST') {
+    if (method === 'POST' && !requestBody.method) {
       // Save user's checklist items
-      const { title, items } = await req.json();
+      const { title, items } = requestBody;
 
       // First create the checklist record
       const { data: checklistData, error: checklistError } = await supabase
@@ -119,10 +136,9 @@ serve(async (req) => {
       });
     }
 
-    if (req.method === 'DELETE') {
+    if (method === 'DELETE') {
       // Delete a checklist (cascade will delete items)
-      const body = await req.json();
-      const checklistId = body.checklistId;
+      const checklistId = requestBody.checklistId;
 
       if (!checklistId) {
         return new Response(JSON.stringify({ error: 'checklistId is required' }), {
